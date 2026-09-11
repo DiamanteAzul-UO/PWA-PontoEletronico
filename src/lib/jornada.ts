@@ -3,10 +3,10 @@ import {
   DESCONTO_CAFE_FDS_MIN,
   JORNADA_SEMANAL_MINUTOS,
   PONTO_CONFIG,
-  VALOR_HORA_EXTRA_SEMANA,
-  VALOR_HORA_FERIADO,
-  VALOR_HORA_FDS,
-  VALOR_HORA_NORMAL,
+  VALOR_HORA_EXTRA_SEMANA as VALOR_HORA_EXTRA_SEMANA_CONFIG,
+  VALOR_HORA_FERIADO as VALOR_HORA_FERIADO_CONFIG,
+  VALOR_HORA_FDS as VALOR_HORA_FDS_CONFIG,
+  VALOR_HORA_NORMAL as VALOR_HORA_NORMAL_CONFIG,
 } from "./config-ponto";
 
 // =============================================
@@ -35,8 +35,8 @@ export const LOCAL_TRABALHO = {
 //   (taxa dobrada) — sem nenhum desconto extra além do almoço que
 //   já é excluído naturalmente pelos horários batidos.
 // =============================================
-export const VALOR_HORA_NORMAL = PONTO_CONFIG.valorHoraNormal;
-export const VALOR_HORA_DOBRADA = PONTO_CONFIG.valorHoraFds;
+export const VALOR_HORA_NORMAL = VALOR_HORA_NORMAL_CONFIG;
+export const VALOR_HORA_DOBRADA = VALOR_HORA_FDS_CONFIG;
 
 // Jornada líquida esperada em dia de semana (07:00–17:00 menos 1h de
 // almoço = 9h = 540min). Usada só para rotular o excedente como
@@ -165,12 +165,12 @@ export function calcularValorFinanceiroDoDia(
     // 15:00–15:15), separado do almoço, que já foi excluído pelos
     // horários batidos.
     const minutosLiquidos = Math.max(0, minutosTrabalhados - DESCONTO_CAFE_FDS_MIN_LOCAL);
-    return (minutosLiquidos / 60) * VALOR_HORA_FDS;
+    return (minutosLiquidos / 60) * VALOR_HORA_FDS_CONFIG;
   }
 
   if (ehFeriado(data)) {
     const minutosLiquidos = Math.max(0, minutosTrabalhados);
-    return (minutosLiquidos / 60) * VALOR_HORA_FERIADO;
+    return (minutosLiquidos / 60) * VALOR_HORA_FERIADO_CONFIG;
   }
 
   const minutosLiquidos = Math.max(0, minutosTrabalhados);
@@ -178,7 +178,7 @@ export function calcularValorFinanceiroDoDia(
   const minutosNormais = Math.min(minutosLiquidos, jornadaBase);
   const minutosExtras = Math.max(0, minutosLiquidos - jornadaBase);
 
-  return (minutosNormais / 60) * VALOR_HORA_NORMAL + (minutosExtras / 60) * VALOR_HORA_EXTRA_SEMANA;
+  return (minutosNormais / 60) * VALOR_HORA_NORMAL + (minutosExtras / 60) * VALOR_HORA_EXTRA_SEMANA_CONFIG;
 }
 
 export function calcularProximoTipo(tipos: TipoRegistro[]): ProximoTipo {

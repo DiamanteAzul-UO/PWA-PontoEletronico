@@ -23,6 +23,10 @@ export function normalizePerfil(perfil?: string | null, fallback?: string | null
 }
 
 export function signToken(payload: JwtPayload): string {
+  if (!JWT_SECRET) {
+    throw new Error("JWT_SECRET não está configurado. Defina a variável de ambiente antes de assinar o token.");
+  }
+
   return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions);
 }
 
@@ -35,6 +39,8 @@ export function getAuth(req: NextRequest): JwtPayload | null {
 
   const [scheme, token] = parts;
   if (!/^Bearer$/i.test(scheme) || !token) return null;
+
+  if (!JWT_SECRET) return null;
 
   try {
     return jwt.verify(token, JWT_SECRET) as JwtPayload;
