@@ -2,11 +2,20 @@ import jwt from "jsonwebtoken";
 import type { NextRequest } from "next/server";
 import { resolvePerfil } from "@/lib/perfil";
 
-const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "24h";
 
-if (!JWT_SECRET && process.env.NODE_ENV === "production") {
-  throw new Error("JWT_SECRET deve ser definido no ambiente de produção.");
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("JWT_SECRET deve ser definido no ambiente de produção.");
+    }
+
+    return "dev-secret-change-me";
+  }
+
+  return secret;
 }
 
 export type PerfilColaborador = "colaborador" | "rh" | "admin";
@@ -23,11 +32,8 @@ export function normalizePerfil(perfil?: string | null, fallback?: string | null
 }
 
 export function signToken(payload: JwtPayload): string {
-  if (!JWT_SECRET) {
-    throw new Error("JWT_SECRET não está configurado. Defina a variável de ambiente antes de assinar o token.");
-  }
-
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions);
+  const secret = getJwtSecret();
+  return jwt.sign(payload, secret, { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions);
 }
 
 export function getAuth(req: NextRequest): JwtPayload | null {
@@ -40,10 +46,9 @@ export function getAuth(req: NextRequest): JwtPayload | null {
   const [scheme, token] = parts;
   if (!/^Bearer$/i.test(scheme) || !token) return null;
 
-  if (!JWT_SECRET) return null;
-
   try {
-    return jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const secret = getJwtSecret();
+    return jwt.verify(token, secret) as JwtPayload;
   } catch {
     return null;
   }
