@@ -89,3 +89,28 @@ test("config interna centraliza os valores de hora e feriados", () => {
   assert.equal(PONTO_CONFIG.jornadaSemanalMinutos, 8 * 60);
   assert.equal(PONTO_CONFIG.descontoCafeFdsMinutos, 30);
 });
+
+test("auth-server não trava o build em produção quando JWT_SECRET ainda não foi injetado", async () => {
+  const previousNodeEnv = process.env.NODE_ENV;
+  const previousSecret = process.env.JWT_SECRET;
+  process.env.NODE_ENV = "production";
+  delete process.env.JWT_SECRET;
+
+  try {
+    const mod = await import(`./auth-server?build-check=${Date.now()}`);
+    assert.ok(mod.signToken);
+    assert.ok(mod.getAuth);
+  } finally {
+    if (previousSecret === undefined) {
+      delete process.env.JWT_SECRET;
+    } else {
+      process.env.JWT_SECRET = previousSecret;
+    }
+
+    if (previousNodeEnv === undefined) {
+      delete process.env.NODE_ENV;
+    } else {
+      process.env.NODE_ENV = previousNodeEnv;
+    }
+  }
+});
